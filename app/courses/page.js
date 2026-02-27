@@ -2,7 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { getData } from '@/lib/db';
+import { getData, getPlatformData } from '@/lib/db';
 import Link from 'next/link';
 import { Star, Clock, ArrowRight, Video, PlayCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -19,7 +19,10 @@ function CoursesContent() {
     const { isLoggedIn } = useAuth();
 
     useEffect(() => {
-        setCourses(getData('courses'));
+        const load = async () => {
+            setCourses(await getPlatformData('courses'));
+        };
+        load();
     }, []);
 
     const requireAuth = (url) => {

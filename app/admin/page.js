@@ -8,9 +8,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getData, saveData } from '@/lib/db';
+import { getData, saveData, getPlatformData, saveItemToDB, deleteItemFromDB } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
-import { getAllUsers, saveAllUsers } from '@/lib/auth';
+import { getAllUsers, adminUpdateUser, adminDeleteUser } from '@/lib/auth';
 
 // ── Sidebar Tab Config ──────────────────────────────────────────────────────
 const TABS = [
@@ -31,6 +31,7 @@ export default function AdminDashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [editingItem, setEditingItem] = useState(null);
     const [editingUser, setEditingUser] = useState(null);
+    const [orders, setOrders] = useState([]);
     const [mounted, setMounted] = useState(false);
 
     // Data
@@ -53,11 +54,17 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         if (!mounted || !isAdmin) return;
-        setCourses(getData('courses'));
-        setEbooks(getData('ebooks'));
-        setBookstore(getData('books'));
-        setLiveClasses(getData('classes'));
-        setUsers(getAllUsers());
+        const load = async () => {
+            setCourses(await getPlatformData('courses'));
+            setEbooks(await getPlatformData('ebooks'));
+            setBookstore(await getPlatformData('books'));
+            setLiveClasses(await getPlatformData('classes'));
+            setUsers(await getAllUsers());
+
+            const ordRes = await fetch('/api/admin/orders');
+            if (ordRes.ok) setOrders(await ordRes.json());
+        };
+        load();
     }, [mounted, isAdmin]);
 
     if (!mounted || loading || !isAdmin) return (
@@ -67,11 +74,20 @@ export default function AdminDashboard() {
     );
 
     // ── Save helpers ────────────────────────────────────────────────────────
-    const commitChanges = (type, data) => {
-        if (type === 'courses') { setCourses(data); saveData('courses', data); }
-        if (type === 'ebooks') { setEbooks(data); saveData('ebooks', data); }
-        if (type === 'books') { setBookstore(data); saveData('books', data); }
-        if (type === 'classes') { setLiveClasses(data); saveData('classes', data); }
+    const commitChanges = async (type, data, singleItem = null) => {
+        // Update local state for immediate feedback
+        if (type === 'courses') setCourses(data);
+        if (type === 'ebooks') setEbooks(data);
+        if (type === 'books') setBookstore(data);
+        if (type === 'classes') setLiveClasses(data);
+
+        // Persistent sync
+        saveData(type, data);
+
+        // Sync specific item to DB if provided
+        if (singleItem) {
+            await saveItemToDB(type, singleItem);
+        }
     };
 
     const getTypeFromTab = () => {
@@ -89,13 +105,22 @@ export default function AdminDashboard() {
     };
 
     // ── CRUD handlers ────────────────────────────────────────────────────────
-    const handleDelete = (id, type) => {
-        if (!confirm('Delete this item? Changes will immediately reflect on the website.')) return;
+    const handleDelete = async (id, type) => {
+        if (!confirm('Delete this item? Changes will immediately reflect on the website and database.')) return;
         const filtered = getCurrentData(type).filter(item => item.id !== id);
-        commitChanges(type, filtered);
+
+        // Immediate local update
+        if (type === 'courses') setCourses(filtered);
+        if (type === 'ebooks') setEbooks(filtered);
+        if (type === 'books') setBookstore(filtered);
+        if (type === 'classes') setLiveClasses(filtered);
+        saveData(type, filtered);
+
+        // DB sync
+        await deleteItemFromDB(type, id);
     };
 
-    const handleSaveItem = (e) => {
+    const handleSaveItem = async (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
         const type = getTypeFromTab();
@@ -115,37 +140,60 @@ export default function AdminDashboard() {
             time: fd.get('time')?.trim() || editingItem.time || '',
             host: fd.get('host')?.trim() || editingItem.host || 'Uday Kantri',
             rating: fd.get('rating')?.trim() || editingItem.rating || '4.9',
+            meetLink: fd.get('meetLink')?.trim() || editingItem.meetLink || '',
+            status: fd.get('status') || editingItem.status || 'scheduled',
         };
 
-        const isNew = !current.find(i => i.id === updatedItem.id);
+        const isNew = !current.find(i => i.id === updatedItem.id || (i.id === 0 && updatedItem.id === 0));
+
+        // Set temp ID if new to prevent errors
+        if (isNew && updatedItem.id === 0) {
+            updatedItem.id = Date.now();
+        }
+
         const nextData = isNew
-            ? [...current, { ...updatedItem, id: Date.now() }]
+            ? [...current, updatedItem]
             : current.map(i => i.id === updatedItem.id ? updatedItem : i);
 
-        commitChanges(type, nextData);
-        setEditingItem(null);
+        setEditingItem(null); // Close modal immediately
+        await commitChanges(type, nextData, updatedItem);
+
+        // Final refresh to get real ID from DB if it was a new item
+        if (isNew) {
+            const freshData = await getPlatformData(type);
+            if (type === 'courses') setCourses(freshData);
+            if (type === 'ebooks') setEbooks(freshData);
+            if (type === 'books') setBookstore(freshData);
+            if (type === 'classes') setLiveClasses(freshData);
+        }
     };
 
-    const handleSaveUser = (e) => {
+    const handleSaveUser = async (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
-        const all = getAllUsers();
-        const idx = all.findIndex(u => u.id === editingUser.id);
-        if (idx !== -1) {
-            all[idx].name = fd.get('name')?.trim();
-            all[idx].role = fd.get('role');
-            all[idx].phone = fd.get('phone')?.trim();
-            saveAllUsers(all);
-            setUsers([...all]);
+        const data = {
+            name: fd.get('name')?.trim(),
+            role: fd.get('role'),
+            phone: fd.get('phone')?.trim()
+        };
+
+        const success = await adminUpdateUser(editingUser.id, data);
+        if (success) {
+            setUsers(await getAllUsers());
+            setEditingUser(null);
+        } else {
+            alert('Failed to update user.');
         }
-        setEditingUser(null);
     };
 
-    const handleDeleteUser = (id) => {
-        if (!confirm('Delete this user account permanently?')) return;
-        const all = getAllUsers().filter(u => u.id !== id);
-        saveAllUsers(all);
-        setUsers(all);
+    const handleDeleteUser = async (id) => {
+        if (!confirm('Delete this user account permanently from database?')) return;
+        const success = await adminDeleteUser(id);
+        if (success) {
+            setUsers(await getAllUsers());
+        } else {
+            alert('Failed to delete user.');
+        }
     };
 
     // ── Overview stats ────────────────────────────────────────────────────────
@@ -510,15 +558,51 @@ export default function AdminDashboard() {
                         {/* ── ORDERS ── */}
                         {activeTab === 'orders' && (
                             <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                <h2 style={{ fontWeight: 900, fontSize: '1.5rem', marginBottom: '0.4rem' }}>Orders</h2>
-                                <p style={{ color: '#64748b', marginBottom: '2rem' }}>Order tracking is managed via Razorpay dashboard and localStorage purchase records.</p>
-                                <div style={{ background: '#fff', borderRadius: '16px', padding: '3rem', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                                    <ShoppingBag size={48} style={{ color: '#cbd5e1', marginBottom: '1rem' }} />
-                                    <h3 style={{ fontWeight: 800, color: '#334155' }}>Connect Razorpay Dashboard</h3>
-                                    <p style={{ color: '#64748b', maxWidth: '400px', margin: '0 auto 1.5rem' }}>Order history and transaction management is available in your Razorpay account. Click below to open it.</p>
-                                    <a href="https://dashboard.razorpay.com" target="_blank" rel="noreferrer" style={{ ...btnGreen, textDecoration: 'none', display: 'inline-flex' }}>
-                                        Open Razorpay Dashboard →
-                                    </a>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                    <div>
+                                        <h2 style={{ fontWeight: 900, fontSize: '1.5rem', marginBottom: '0.4rem' }}>Sales & Orders</h2>
+                                        <p style={{ color: '#64748b' }}>Track all digital and physical transactions from PostgreSQL.</p>
+                                    </div>
+                                    <button onClick={async () => {
+                                        const ordRes = await fetch('/api/admin/orders');
+                                        if (ordRes.ok) setOrders(await ordRes.json());
+                                    }} style={{ ...btnEdit, padding: '8px 16px', fontSize: '0.8rem' }}>Refresh Orders</button>
+                                </div>
+
+                                <div style={tableCard}>
+                                    <table style={table}>
+                                        <thead>
+                                            <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                                {['Customer', 'Product', 'Type', 'Amount', 'Date', 'Status'].map(h => (
+                                                    <th key={h} style={th}>{h}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {orders.length === 0 && (
+                                                <tr><td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>No orders found in database.</td></tr>
+                                            )}
+                                            {orders.map(o => (
+                                                <tr key={o.id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                                    <td style={td}>
+                                                        <div style={{ fontWeight: 800, color: '#0f172a' }}>{o.userName}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{o.userEmail}</div>
+                                                    </td>
+                                                    <td style={{ ...td, fontWeight: 700 }}>{o.itemTitle}</td>
+                                                    <td style={td}>
+                                                        <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', padding: '3px 8px', borderRadius: '4px', background: '#f1f5f9', color: '#64748b' }}>{o.type}</span>
+                                                    </td>
+                                                    <td style={{ ...td, fontWeight: 900, color: '#10b981' }}>₹{o.amount}</td>
+                                                    <td style={{ ...td, color: '#64748b', fontSize: '0.8rem' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
+                                                    <td style={td}>
+                                                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: o.status === 'completed' || o.status === 'confirmed' ? '#059669' : '#b45309' }}>
+                                                            {o.status?.toUpperCase() || 'PAID'}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </motion.div>
                         )}

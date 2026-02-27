@@ -2,7 +2,7 @@
 import ProductCard from '@/components/ProductCard';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
-import { getData } from '@/lib/db';
+import { getData, getPlatformData } from '@/lib/db';
 
 function EbooksContent() {
     const searchParams = useSearchParams();
@@ -10,7 +10,10 @@ function EbooksContent() {
     const [ebooks, setEbooks] = useState([]);
 
     useEffect(() => {
-        setEbooks(getData('ebooks'));
+        const load = async () => {
+            setEbooks(await getPlatformData('ebooks'));
+        };
+        load();
     }, []);
 
     return (

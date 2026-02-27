@@ -1,83 +1,117 @@
+'use client';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+    return isMobile;
+}
 
 export default function Footer() {
+    const isMobile = useIsMobile();
+    const isSmall = typeof window !== 'undefined' && window.innerWidth <= 480;
+
     return (
         <footer style={{
             background: '#1e293b',
-            marginTop: '6rem',
+            marginTop: isMobile ? '2rem' : '6rem',
             color: '#f8fafc',
             borderTop: '1px solid rgba(255,255,255,0.1)'
         }}>
-            <style>{`
-                .footer-inner { padding: 4rem 0 2rem; }
-                .footer-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 3rem; }
-                .footer-logo { margin-bottom: 0.8rem; display: inline-block; }
-                .footer-tagline { color: #94a3b8; margin-bottom: 1rem; font-size: 0.9rem; line-height: 1.5; }
-                .footer-contact { font-size: 0.85rem; color: #94a3b8; display: flex; flex-direction: column; gap: 0.4rem; }
-                .footer-col-title { color: #fff; font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem; }
-                .footer-links { display: flex; flex-direction: column; gap: 0.5rem; }
-                .footer-bottom {
-                    margin-top: 3rem; padding-top: 1.5rem;
-                    border-top: 1px solid rgba(255,255,255,0.1);
-                    text-align: center; color: #64748b; font-size: 0.82rem;
-                }
-                @media (max-width: 768px) {
-                    .footer-inner { padding: 2.5rem 0 1.5rem !important; }
-                    .footer-grid {
-                        grid-template-columns: 1fr 1fr !important;
-                        gap: 2rem !important;
-                    }
-                    .footer-brand { grid-column: 1 / -1; }
-                    .footer-bottom { margin-top: 2rem !important; font-size: 0.78rem !important; }
-                }
-                @media (max-width: 480px) {
-                    .footer-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
-                    .footer-inner { padding: 2rem 0 1rem !important; }
-                }
-            `}</style>
+            <div className="container" style={{ padding: isMobile ? '1.2rem 1rem 0.8rem' : '4rem 1.5rem 2rem', boxSizing: 'border-box' }}>
 
-            <div className="container footer-inner">
-                <div className="footer-grid">
-                    {/* Brand */}
-                    <div className="footer-brand">
-                        <Link href="/" className="logo footer-logo">
-                            <span style={{ color: '#fff' }}>KANTRI</span>
-                            <span className="gradient-text"> LAWYER</span>
-                        </Link>
-                        <p className="footer-tagline">
-                            Kantri by Awareness, Honest by Conscience
-                        </p>
-                        <div className="footer-contact">
-                            <p>📞 +91 93929 07777</p>
-                            <p>📧 uday@kantrilawyer.com</p>
+                {/* Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr 1fr' : '1.2fr 1fr 1fr',
+                    gap: isMobile ? '1rem' : '3rem',
+                }}>
+
+                    {/* Brand — full width on mobile */}
+                    <div style={isMobile ? { gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', paddingBottom: '0.8rem', borderBottom: '1px solid rgba(255,255,255,0.08)' } : {}}>
+                        <div>
+                            <Link href="/" style={{ textDecoration: 'none', display: 'inline-block', marginBottom: isMobile ? '0' : '0.8rem' }}>
+                                <span style={{ fontWeight: 900, fontSize: isMobile ? '1.1rem' : '1.5rem', color: '#fff' }}>KANTRI</span>
+                                <span style={{ fontWeight: 900, fontSize: isMobile ? '1.1rem' : '1.5rem', color: '#10b981' }}> LAWYER</span>
+                            </Link>
+                            {!isMobile && (
+                                <p style={{ color: '#94a3b8', marginBottom: '0.8rem', fontSize: '0.88rem', lineHeight: 1.6 }}>
+                                    Kantri by Awareness, Honest by Conscience
+                                </p>
+                            )}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', gap: isMobile ? '0.8rem' : '0.35rem', fontSize: '0.78rem', color: '#94a3b8', flexWrap: 'wrap' }}>
+                            <span>📞 +91 93929 07777</span>
+                            <span>📧 uday@kantrilawyer.com</span>
                         </div>
                     </div>
 
                     {/* Quick Links */}
                     <div>
-                        <h4 className="footer-col-title">Quick Links</h4>
-                        <ul className="footer-links">
-                            <li><Link href="/courses" className="nav-link">All Courses</Link></li>
-                            <li><Link href="/ebooks" className="nav-link">eBooks Library</Link></li>
-                            <li><Link href="/bookstore" className="nav-link">Physical Books</Link></li>
-                            <li><Link href="/contact" className="nav-link">Contact Us</Link></li>
+                        <h4 style={{ color: '#fff', fontSize: isMobile ? '0.8rem' : '0.92rem', fontWeight: 700, marginBottom: isMobile ? '0.6rem' : '0.9rem' }}>Quick Links</h4>
+                        <ul style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.35rem' : '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
+                            {[
+                                { href: '/courses', label: 'All Courses' },
+                                { href: '/ebooks', label: 'eBooks Library' },
+                                { href: '/bookstore', label: 'Physical Books' },
+                                { href: '/contact', label: 'Contact Us' },
+                            ].map(link => (
+                                <li key={link.href}>
+                                    <Link href={link.href} style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.88rem', transition: '0.2s' }}
+                                        onMouseEnter={e => e.target.style.color = '#10b981'}
+                                        onMouseLeave={e => e.target.style.color = '#94a3b8'}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     {/* Legal */}
                     <div>
-                        <h4 className="footer-col-title">Legal</h4>
-                        <ul className="footer-links">
-                            <li><Link href="/cancellation-and-refunds" className="nav-link">Cancellations &amp; Refunds</Link></li>
-                            <li><Link href="/shipping-policy" className="nav-link">Shipping Policy</Link></li>
-                            <li><Link href="/privacy-policy" className="nav-link">Privacy Policy</Link></li>
-                            <li><Link href="/terms" className="nav-link">Terms of Service</Link></li>
-                            <li><Link href="/admin/login" className="nav-link" style={{ color: 'var(--primary)', fontWeight: 700 }}>Instructor Portal</Link></li>
+                        <h4 style={{ color: '#fff', fontSize: isMobile ? '0.8rem' : '0.92rem', fontWeight: 700, marginBottom: isMobile ? '0.6rem' : '0.9rem' }}>Legal</h4>
+                        <ul style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '0.35rem' : '0.5rem', listStyle: 'none', padding: 0, margin: 0 }}>
+                            {[
+                                { href: '/cancellation-and-refunds', label: 'Cancellations & Refunds' },
+                                { href: '/shipping-policy', label: 'Shipping Policy' },
+                                { href: '/privacy-policy', label: 'Privacy Policy' },
+                                { href: '/terms', label: 'Terms of Service' },
+                            ].map(link => (
+                                <li key={link.href}>
+                                    <Link href={link.href} style={{ color: '#94a3b8', textDecoration: 'none', fontSize: '0.88rem', transition: '0.2s' }}
+                                        onMouseEnter={e => e.target.style.color = '#10b981'}
+                                        onMouseLeave={e => e.target.style.color = '#94a3b8'}
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </li>
+                            ))}
+                            <li>
+                                <Link href="/admin/login" style={{ color: '#10b981', textDecoration: 'none', fontSize: isMobile ? '0.78rem' : '0.88rem', fontWeight: 700 }}>
+                                    Instructor Portal
+                                </Link>
+                            </li>
                         </ul>
                     </div>
                 </div>
 
-                <div className="footer-bottom">
+                {/* Bottom bar */}
+                <div style={{
+                    marginTop: isMobile ? '1rem' : '3rem',
+                    paddingTop: isMobile ? '0.8rem' : '1.2rem',
+                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                    textAlign: 'center',
+                    color: '#64748b',
+                    fontSize: isMobile ? '0.7rem' : '0.82rem',
+                    paddingBottom: isMobile ? '0.5rem' : 0,
+                }}>
                     © {new Date().getFullYear()} Kantri Lawyer. All rights reserved.
                 </div>
             </div>

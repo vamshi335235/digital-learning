@@ -3,18 +3,33 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { BookOpen, Video, Users, ShoppingBag, ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import { useState, useEffect } from 'react';
-import { getData } from '@/lib/db';
+import { useState, useEffect, useCallback } from 'react';
 
-export default function Home() {
+function useIsMobile() {
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
+    return isMobile;
+}
+import { getData, getPlatformData } from '@/lib/db';
+
+export default function HomePage() {
+    const isMobile = useIsMobile();
     const [courses, setCourses] = useState([]);
     const [ebooks, setEbooks] = useState([]);
     const [books, setBooks] = useState([]);
 
     useEffect(() => {
-        setCourses(getData('courses'));
-        setEbooks(getData('ebooks'));
-        setBooks(getData('books'));
+        const load = async () => {
+            setCourses(await getPlatformData('courses'));
+            setEbooks(await getPlatformData('ebooks'));
+            setBooks(await getPlatformData('books'));
+        };
+        load();
     }, []);
 
     const features = [
@@ -130,27 +145,33 @@ export default function Home() {
             {/* ── Features Grid ── */}
             <section className="why-section">
                 <h2>Why Choose <span className="gradient-text">Kantri Lawyer?</span></h2>
-                <div className="grid-4">
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '1.5rem',
+                    justifyContent: 'center',
+                    alignItems: 'stretch',
+                }}>
                     {features.map((f, i) => (
-                        <Link key={i} href={f.link}>
+                        <Link key={i} href={f.link} style={{ flex: '1 1 220px', maxWidth: '280px', minWidth: '200px' }}>
                             <motion.div
-                                whileHover={{ y: -8, scale: 1.02 }}
+                                whileHover={{ y: -8, scale: 1.03 }}
                                 className="glass-card"
                                 style={{
-                                    textAlign: 'center', padding: '2rem 1.2rem',
+                                    textAlign: 'center', padding: '2.2rem 1.5rem',
                                     cursor: 'pointer', height: '100%',
                                     border: '1.5px solid var(--border)', borderRadius: '20px'
                                 }}
                             >
                                 <div style={{
-                                    background: 'rgba(5,150,105,0.1)', width: '60px', height: '60px',
-                                    borderRadius: '16px', display: 'flex', alignItems: 'center',
-                                    justifyContent: 'center', margin: '0 auto 1.2rem', color: 'var(--primary)'
+                                    background: 'rgba(5,150,105,0.1)', width: '68px', height: '68px',
+                                    borderRadius: '18px', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', margin: '0 auto 1.3rem', color: 'var(--primary)'
                                 }}>
                                     {f.icon}
                                 </div>
-                                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.6rem', fontWeight: 800 }}>{f.title}</h4>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.5, margin: 0 }}>{f.desc}</p>
+                                <h4 style={{ fontSize: '1.15rem', marginBottom: '0.7rem', fontWeight: 800 }}>{f.title}</h4>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
                             </motion.div>
                         </Link>
                     ))}
@@ -222,19 +243,79 @@ export default function Home() {
                         </p>
                     </div>
                 </div>
-                <div className="grid-3">
-                    {ebooks.slice(0, 1).map(item => <ProductCard key={item.id} type="ebooks" item={item} />)}
-                    {books.slice(0, 1).map(item => <ProductCard key={item.id} type="bookstore" item={item} />)}
-                    {courses.slice(1, 2).map(item => <ProductCard key={item.id} type="courses" item={item} />)}
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '2rem',
+                    justifyContent: 'center',
+                    alignItems: 'stretch',
+                }}>
+                    {ebooks.slice(0, 1).map(item => (
+                        <div key={item.id} style={{ flex: '1 1 280px', maxWidth: '360px', minWidth: '260px' }}>
+                            <ProductCard type="ebooks" item={item} />
+                        </div>
+                    ))}
+                    {books.slice(0, 1).map(item => (
+                        <div key={item.id} style={{ flex: '1 1 280px', maxWidth: '360px', minWidth: '260px' }}>
+                            <ProductCard type="bookstore" item={item} />
+                        </div>
+                    ))}
+                    {courses.slice(1, 2).map(item => (
+                        <div key={item.id} style={{ flex: '1 1 280px', maxWidth: '360px', minWidth: '260px' }}>
+                            <ProductCard type="courses" item={item} />
+                        </div>
+                    ))}
                 </div>
             </section>
 
+
             {/* ── Call to Action ── */}
-            <section className="cta-section glass-card">
-                <h2>Ready to start learning?</h2>
-                <p>Join thousands of students and start your professional legal growth today.</p>
-                <Link href="/auth/signup" className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
-                    Create Your Account
+            <section style={{
+                margin: isMobile ? '1.5rem 0' : '4rem 0',
+                padding: isMobile ? '1.5rem 1rem' : '3.5rem 3rem',
+                textAlign: 'center',
+                background: 'linear-gradient(135deg, #064e3b 0%, #059669 50%, #0891b2 100%)',
+                borderRadius: isMobile ? '20px' : '32px',
+                boxSizing: 'border-box',
+                position: 'relative',
+                overflow: 'hidden',
+            }}>
+                {/* Decorative glow blobs */}
+                <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', background: 'rgba(255,255,255,0.06)', borderRadius: '50%', pointerEvents: 'none' }} />
+                <div style={{ position: 'absolute', bottom: '-60px', left: '-30px', width: '260px', height: '260px', background: 'rgba(255,255,255,0.04)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+                <h2 style={{
+                    fontSize: isMobile ? '1.2rem' : '2.2rem',
+                    marginBottom: isMobile ? '0.6rem' : '1rem',
+                    lineHeight: 1.25, color: '#fff', position: 'relative'
+                }}>
+                    Ready to start learning?
+                </h2>
+                {!isMobile && (
+                    <p style={{
+                        color: 'rgba(255,255,255,0.8)',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.6, maxWidth: '480px',
+                        margin: `0 auto 2rem`,
+                        position: 'relative'
+                    }}>
+                        Join thousands of students and start your professional legal growth today.
+                    </p>
+                )}
+                <Link href="/auth/login" style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    paddingTop: isMobile ? '0.65rem' : '0.95rem',
+                    paddingBottom: isMobile ? '0.65rem' : '0.95rem',
+                    paddingLeft: isMobile ? '1.4rem' : '2.5rem',
+                    paddingRight: isMobile ? '1.4rem' : '2.5rem',
+                    fontSize: isMobile ? '0.88rem' : '1.05rem',
+                    fontWeight: 800, borderRadius: '10px',
+                    background: '#fff', color: '#059669',
+                    textDecoration: 'none', position: 'relative',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                    fontFamily: 'inherit', marginTop: isMobile ? '0.8rem' : 0
+                }}>
+                    Create Your Account →
                 </Link>
             </section>
         </div>

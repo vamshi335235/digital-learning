@@ -24,7 +24,6 @@ export default function LoginPage() {
         try {
             const session = await loginUser(form);
             login(session);
-            // Redirect admin to admin panel, users to dashboard
             router.push(session.role === 'admin' ? '/admin' : '/dashboard');
         } catch (err) {
             if (err.message === 'INVALID_CREDENTIALS') setError('Invalid email or password. Please try again.');
@@ -88,7 +87,7 @@ export default function LoginPage() {
                                     type={showPass ? 'text' : 'password'} placeholder="••••••••"
                                     value={form.password}
                                     onChange={e => setForm({ ...form, password: e.target.value })}
-                                    style={{ ...inputStyle, paddingRight: '3rem' }}
+                                    style={{ ...inputStyle, paddingTop: '0.85rem', paddingBottom: '0.85rem', paddingLeft: '2.8rem', paddingRight: '3rem' }}
                                 />
                                 <button type="button" onClick={() => setShowPass(!showPass)}
                                     style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
@@ -131,7 +130,9 @@ export default function LoginPage() {
 }
 
 const inputStyle = {
-    width: '100%', padding: '0.85rem 0.85rem 0.85rem 2.8rem',
+    width: '100%',
+    paddingTop: '0.85rem', paddingBottom: '0.85rem',
+    paddingLeft: '2.8rem', paddingRight: '0.85rem',
     border: '1.5px solid #e5e7eb', borderRadius: '10px',
     fontSize: '0.95rem', fontFamily: 'inherit', color: '#0f172a',
     background: '#f9fafb', outline: 'none', boxSizing: 'border-box'

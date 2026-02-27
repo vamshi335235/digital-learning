@@ -10,8 +10,16 @@ export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [activeMenu, setActiveMenu] = useState(null);
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
     const pathname = usePathname();
     const { user, logout, isLoggedIn, isAdmin } = useAuth();
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 992);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
 
     const isActive = (path) => pathname === path;
 
@@ -143,9 +151,12 @@ export default function Navbar() {
                             <User size={18} /> Login
                         </button>
                     )}
-                    <button className="mobile-only" onClick={() => setIsOpen(!isOpen)}>
-                        {isOpen ? <X /> : <Menu />}
-                    </button>
+                    {/* Hamburger — mobile/tablet only */}
+                    {isMobile && (
+                        <button onClick={() => setIsOpen(!isOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}>
+                            {isOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    )}
                 </div>
             </div>
 

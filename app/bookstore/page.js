@@ -2,7 +2,7 @@
 import ProductCard from '@/components/ProductCard';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
-import { getData } from '@/lib/db';
+import { getData, getPlatformData } from '@/lib/db';
 
 function BookstoreContent() {
     const searchParams = useSearchParams();
@@ -10,7 +10,10 @@ function BookstoreContent() {
     const [books, setBooks] = useState([]);
 
     useEffect(() => {
-        setBooks(getData('books'));
+        const load = async () => {
+            setBooks(await getPlatformData('books'));
+        };
+        load();
     }, []);
 
     return (

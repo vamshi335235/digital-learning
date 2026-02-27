@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Video, Clock, User, Lock, ExternalLink, ShoppingCart, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getData } from '@/lib/db';
+import { getData, getPlatformData } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import AuthModal from '@/components/AuthModal';
 
@@ -21,15 +21,12 @@ export default function LiveClassesPage() {
 
     useEffect(() => {
         setMounted(true);
-        // Deduplicate by id to prevent React duplicate key warnings
-        const raw = getData('classes') || [];
-        const seen = new Set();
-        const unique = raw.filter(cls => {
-            if (seen.has(cls.id)) return false;
-            seen.add(cls.id);
-            return true;
-        });
-        setClasses(unique);
+        const load = async () => {
+            const raw = await getPlatformData('classes') || [];
+            const unique = Array.from(new Map(raw.map(item => [item.id, item])).values());
+            setClasses(unique);
+        };
+        load();
     }, []);
 
     const hasPurchased = (classId) => {

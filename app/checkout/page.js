@@ -2,10 +2,12 @@
 import { CreditCard, ShieldCheck, User, ArrowRight, CheckCircle, PlayCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getData } from '@/lib/db';
+import { getData, getPlatformData } from '@/lib/db';
+import { useAuth } from '@/context/AuthContext';
 import { Suspense } from 'react';
 
 function CheckoutContent() {
+    const { user, refreshPurchases } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [coupon, setCoupon] = useState('');
@@ -18,9 +20,12 @@ function CheckoutContent() {
 
     useEffect(() => {
         if (itemId) {
-            const allItems = getData(type);
-            const found = allItems.find(i => i.id === itemId || i.id === Number(itemId));
-            if (found) setItem(found);
+            const load = async () => {
+                const allItems = await getPlatformData(type);
+                const found = allItems.find(i => String(i.id) === String(itemId));
+                if (found) setItem(found);
+            };
+            load();
         }
     }, [itemId, type]);
 
@@ -51,13 +56,35 @@ function CheckoutContent() {
                 description: item ? `Purchase: ${item.title}` : 'Learning Materials',
                 image: "/assets/images/logo.png",
                 order_id: order.id,
-                handler: function (response) {
-                    if (itemId) {
-                        const purchased = JSON.parse(localStorage.getItem('purchased_courses') || '[]');
-                        if (!purchased.includes(itemId)) { purchased.push(itemId); localStorage.setItem('purchased_courses', JSON.stringify(purchased)); }
+                handler: async function (response) {
+                    setLoading(true);
+                    try {
+                        // Verify on backend and save to PostgreSQL
+                        const verifyRes = await fetch('/api/razorpay/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...response,
+                                userId: user?.id,
+                                purchaseType: type,
+                                itemId,
+                                amount: total,
+                                addressInfo: formData
+                            })
+                        });
+
+                        if (verifyRes.ok) {
+                            await refreshPurchases();
+                            if (type === 'courses' && itemId) router.push(`/courses/${itemId}?unlocked=1`);
+                            else router.push('/dashboard');
+                        } else {
+                            alert('Payment verified by Razorpay but failed to sync to database. Please contact support.');
+                        }
+                    } catch (e) {
+                        alert('Verification Error: ' + e.message);
+                    } finally {
+                        setLoading(false);
                     }
-                    if (type === 'courses' && itemId) router.push(`/courses/${itemId}?unlocked=1`);
-                    else router.push('/dashboard');
                 },
                 prefill: { name: formData.name, email: formData.email, contact: formData.phone },
                 notes: { address: formData.address },

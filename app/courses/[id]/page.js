@@ -6,7 +6,8 @@ import {
     BookOpen, Target, ChevronDown, ChevronUp,
     Video, Users, Award, ShoppingCart, ArrowRight, CheckSquare
 } from 'lucide-react';
-import { getData } from '@/lib/db';
+import { useAuth } from '@/context/AuthContext';
+import { getPlatformData } from '@/lib/db';
 import VideoPlayer from '@/components/VideoPlayer';
 import Link from 'next/link';
 
@@ -69,8 +70,8 @@ const OUTCOMES = [
 
 export default function CourseDetail({ params }) {
     const { id } = use(params);
+    const { user, purchases } = useAuth();
     const [course, setCourse] = useState(null);
-    const [isPurchased, setIsPurchased] = useState(false);
     const [openModule, setOpenModule] = useState(0);
     const [selectedLesson, setSelectedLesson] = useState(DEFAULT_CURRICULUM[0].lessons[0]);
     const [isMobile, setIsMobile] = useState(false);
@@ -83,15 +84,18 @@ export default function CourseDetail({ params }) {
     }, []);
 
     useEffect(() => {
-        const courses = getData('courses');
-        const found = courses.find(c => String(c.id) === String(id)) || courses[0];
-        setCourse(found);
-        if (found?.videoUrl) {
-            setSelectedLesson({ ...DEFAULT_CURRICULUM[0].lessons[0], videoUrl: found.videoUrl });
-        }
-        const purchased = JSON.parse(localStorage.getItem('purchased_courses') || '[]');
-        setIsPurchased(purchased.map(String).includes(String(id)));
+        const load = async () => {
+            const courses = await getPlatformData('courses');
+            const found = courses.find(c => String(c.id) === String(id)) || courses[0];
+            setCourse(found);
+            if (found?.videoUrl) {
+                setSelectedLesson({ ...DEFAULT_CURRICULUM[0].lessons[0], videoUrl: found.videoUrl });
+            }
+        };
+        load();
     }, [id]);
+
+    const isPurchased = purchases.courses.includes(Number(id));
 
     if (!course) return (
         <div className="container" style={{ paddingTop: '8rem', textAlign: 'center', color: 'var(--text-muted)' }}>
