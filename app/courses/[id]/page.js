@@ -95,7 +95,7 @@ export default function CourseDetail({ params }) {
         load();
     }, [id]);
 
-    const isPurchased = purchases.courses.includes(Number(id));
+    const isPurchased = purchases.courses.some(cid => String(cid) === String(id));
 
     if (!course) return (
         <div className="container" style={{ paddingTop: '8rem', textAlign: 'center', color: 'var(--text-muted)' }}>

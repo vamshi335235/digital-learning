@@ -1,8 +1,72 @@
 'use client';
+import { useState } from 'react';
 import { Phone, Mail, MapPin, Send, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ContactPage() {
+    const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+    const [status, setStatus] = useState({ type: '', text: '' });
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setStatus({ type: '', text: '' });
+
+        // Mandatory Check
+        if (!form.name || !form.email || !form.phone || !form.message) {
+            setStatus({ type: 'error', text: 'All fields (Name, Email, Phone, Message) are mandatory.' });
+            return;
+        }
+
+        // Name Validation: Min 3 chars and Alphabets only
+        if (form.name.trim().length < 3) {
+            setStatus({ type: 'error', text: 'Name must be at least 3 characters long.' });
+            return;
+        }
+        if (!/^[A-Za-z\s]+$/.test(form.name)) {
+            setStatus({ type: 'error', text: 'Name should only contain alphabets.' });
+            return;
+        }
+
+        // Subject Validation: Min 3 chars
+        if (form.subject.trim().length < 3) {
+            setStatus({ type: 'error', text: 'Subject must be at least 3 characters long.' });
+            return;
+        }
+
+        // Phone Validation: 10 digits only
+        if (!/^\d{10}$/.test(form.phone)) {
+            setStatus({ type: 'error', text: 'Enter a valid 10-digit phone number.' });
+            return;
+        }
+
+        // Email Validation
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+            setStatus({ type: 'error', text: 'Please enter a valid email address using @.' });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form)
+            });
+
+            if (res.ok) {
+                setStatus({ type: 'success', text: '✅ Message sent successfully! Our team will contact you soon.' });
+                setForm({ name: '', email: '', phone: '', subject: '', message: '' });
+            } else {
+                throw new Error('Failed to send');
+            }
+        } catch (err) {
+            setStatus({ type: 'error', text: '❌ Something went wrong. Please try again later.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="container" style={{ paddingBottom: '6rem', paddingTop: '5rem' }}>
             <style>{`
@@ -118,27 +182,64 @@ export default function ContactPage() {
                     <h3 style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <MessageSquare size={20} className="text-primary" /> Send a Message
                     </h3>
-                    <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div className="contact-form-inner">
                             <div className="input-group">
                                 <label>Name</label>
-                                <input type="text" placeholder="John Doe" />
+                                <input
+                                    type="text" placeholder="John Doe"
+                                    value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                                />
                             </div>
                             <div className="input-group">
                                 <label>Subject</label>
-                                <input type="text" placeholder="Inquiry" />
+                                <input
+                                    type="text" placeholder="Inquiry"
+                                    value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="contact-form-inner">
+                            <div className="input-group">
+                                <label>Email Address</label>
+                                <input
+                                    type="email" placeholder="you@example.com"
+                                    value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label>Phone Number</label>
+                                <input
+                                    type="tel" placeholder="10-digit mobile"
+                                    value={form.phone} onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setForm({ ...form, phone: val });
+                                    }}
+                                />
                             </div>
                         </div>
                         <div className="input-group">
-                            <label>Email</label>
-                            <input type="email" placeholder="you@example.com" />
-                        </div>
-                        <div className="input-group">
                             <label>Message</label>
-                            <textarea placeholder="How can we help you?" style={{ minHeight: '140px', resize: 'vertical' }}></textarea>
+                            <textarea
+                                placeholder="How can we help you?"
+                                style={{ minHeight: '140px', resize: 'vertical' }}
+                                value={form.message} onChange={e => setForm({ ...form, message: e.target.value })}
+                            ></textarea>
                         </div>
-                        <button className="btn-primary" style={{ justifyContent: 'center', padding: '1rem', color: '#fff', width: '100%' }}>
-                            <Send size={18} /> Send Message
+
+                        {status.text && (
+                            <div style={{
+                                padding: '12px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600,
+                                background: status.type === 'error' ? '#fee2e2' : '#f0fdf4',
+                                color: status.type === 'error' ? '#dc2626' : '#16a34a',
+                                border: `1px solid ${status.type === 'error' ? '#fecaca' : '#bbf7d0'}`
+                            }}>
+                                {status.text}
+                            </div>
+                        )}
+
+                        <button className="btn-primary" disabled={loading} style={{ justifyContent: 'center', padding: '1rem', color: '#fff', width: '100%', opacity: loading ? 0.7 : 1 }}>
+                            {loading ? 'Sending...' : <><Send size={18} /> Send Message</>}
                         </button>
                     </form>
                 </motion.div>
@@ -146,3 +247,4 @@ export default function ContactPage() {
         </div>
     );
 }
+

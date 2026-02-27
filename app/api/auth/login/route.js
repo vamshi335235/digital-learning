@@ -42,7 +42,7 @@ export async function POST(request) {
         });
 
     } catch (error) {
-        console.error('[/api/auth/login]', error.message);
-        return NextResponse.json({ error: 'Server error' }, { status: 500 });
+        console.error('❌ [LOGIN_API_ERROR]:', error);
+        return NextResponse.json({ error: 'Server error: ' + error.message }, { status: 500 });
     }
 }

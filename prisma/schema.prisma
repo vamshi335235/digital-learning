@@ -171,3 +171,18 @@ model Order {
 
   @@map("orders")
 }
+
+// ── Contact Messages ────────────────────────────────────────────────────────
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    String   @default("new") // new | read | replied
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}
+

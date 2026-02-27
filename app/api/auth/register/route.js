@@ -6,13 +6,19 @@ import { randomBytes } from 'crypto';
 
 export async function POST(request) {
     try {
-        const { name, email, password } = await request.json();
+        const { name, email, password, phone } = await request.json();
 
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !phone) {
             return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
         }
-        if (password.length < 6) {
-            return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 });
+        if (password.length < 8) {
+            return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
+        }
+        if (!/[A-Z]/.test(password)) {
+            return NextResponse.json({ error: 'Password must contain at least one capital letter.' }, { status: 400 });
+        }
+        if (!/^\d{10}$/.test(phone)) {
+            return NextResponse.json({ error: 'Phone number must be exactly 10 digits.' }, { status: 400 });
         }
 
         // Check existing user
@@ -27,6 +33,7 @@ export async function POST(request) {
             data: {
                 name: name.trim(),
                 email: email.toLowerCase().trim(),
+                phone: phone.trim(),
                 passwordHash,
                 role: 'user',
             }

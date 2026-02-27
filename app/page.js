@@ -302,21 +302,7 @@ export default function HomePage() {
                         Join thousands of students and start your professional legal growth today.
                     </p>
                 )}
-                <Link href="/auth/login" style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    paddingTop: isMobile ? '0.65rem' : '0.95rem',
-                    paddingBottom: isMobile ? '0.65rem' : '0.95rem',
-                    paddingLeft: isMobile ? '1.4rem' : '2.5rem',
-                    paddingRight: isMobile ? '1.4rem' : '2.5rem',
-                    fontSize: isMobile ? '0.88rem' : '1.05rem',
-                    fontWeight: 800, borderRadius: '10px',
-                    background: '#fff', color: '#059669',
-                    textDecoration: 'none', position: 'relative',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                    fontFamily: 'inherit', marginTop: isMobile ? '0.8rem' : 0
-                }}>
-                    Create Your Account →
-                </Link>
+                {/* Button removed as requested */}
             </section>
         </div>
     );

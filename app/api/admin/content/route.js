@@ -27,6 +27,16 @@ export async function GET(request) {
     }
 }
 
+// Helper to get allowed fields per model
+const getAllowedFields = (type) => {
+    const common = ['title', 'description', 'category', 'price', 'originalPrice', 'rating', 'image', 'isPublished'];
+    if (type === 'courses') return [...common, 'duration', 'videoUrl'];
+    if (type === 'ebooks') return [...common, 'fileUrl'];
+    if (type === 'books') return [...common, 'stock'];
+    if (type === 'classes') return ['title', 'description', 'category', 'price', 'date', 'time', 'duration', 'host', 'meetLink', 'status', 'isPublished'];
+    return [];
+};
+
 // POST: Create or Update
 export async function POST(request) {
     try {
@@ -37,27 +47,42 @@ export async function POST(request) {
         if (!model) return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
 
         if (action === 'delete') {
-            await model.delete({ where: { id: data.id } });
+            await model.delete({ where: { id: Number(data.id) } });
             return NextResponse.json({ success: true });
         }
 
+        // Sanitize data: only keep allowed fields for the specific model
+        const allowed = getAllowedFields(type);
+        const filteredData = {};
+
+        allowed.forEach(field => {
+            if (data[field] !== undefined) {
+                filteredData[field] = data[field];
+            }
+        });
+
+        // Ensure numbers are numbers
+        if (filteredData.price !== undefined) filteredData.price = Number(filteredData.price);
+        if (filteredData.originalPrice !== undefined) filteredData.originalPrice = Number(filteredData.originalPrice);
+        if (filteredData.stock !== undefined) filteredData.stock = Number(filteredData.stock);
+
         // Upsert logic
-        if (data.id && typeof data.id === 'number' && data.id > 1000000) {
-            // This is a temporary frontend ID (timestamp), treat as create
-            const { id, ...createData } = data;
-            const newItem = await model.create({ data: createData });
+        const id = Number(data.id);
+
+        if (id && id > 1000000) {
+            // Temporary frontend ID (timestamp), create new
+            const newItem = await model.create({ data: filteredData });
             return NextResponse.json(newItem);
-        } else if (data.id) {
+        } else if (id && id > 0) {
             // Update existing
-            const { id, ...updateData } = data;
             const updated = await model.update({
-                where: { id: Number(id) },
-                data: updateData
+                where: { id },
+                data: filteredData
             });
             return NextResponse.json(updated);
         } else {
-            // Create new
-            const newItem = await model.create({ data });
+            // Create new (no ID provided)
+            const newItem = await model.create({ data: filteredData });
             return NextResponse.json(newItem);
         }
     } catch (e) {

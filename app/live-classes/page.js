@@ -14,7 +14,7 @@ const STATUS_STYLE = {
 };
 
 export default function LiveClassesPage() {
-    const { user, isLoggedIn } = useAuth();
+    const { user, isLoggedIn, purchases } = useAuth();
     const [classes, setClasses] = useState([]);
     const [showAuth, setShowAuth] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -30,10 +30,9 @@ export default function LiveClassesPage() {
     }, []);
 
     const hasPurchased = (classId) => {
-        if (!user) return false;
-        const key = `user_${user.id}_purchases`;
-        const purchases = JSON.parse(localStorage.getItem(key) || '[]');
-        return purchases.some(p => p.id === classId && p.type === 'class');
+        if (!isLoggedIn || !purchases) return false;
+        // purchases.classes is an array of IDs (strings or numbers)
+        return purchases.classes?.some(id => String(id) === String(classId));
     };
 
     if (!mounted) return null;

@@ -3,7 +3,8 @@ import {
     LayoutDashboard, BookOpen, FileText, Package, Video,
     ShoppingBag, Users, Settings, LogOut, Plus, Edit,
     Trash2, X, Save, Menu, ShieldCheck, TrendingUp,
-    PlayCircle, Eye, CheckCircle, Clock, Star, Link as LinkIcon
+    PlayCircle, Eye, CheckCircle, Clock, Star, Link as LinkIcon,
+    MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
@@ -21,6 +22,7 @@ const TABS = [
     { id: 'classes', label: 'Live Classes', icon: <Video size={18} />, section: 'Content' },
     { id: 'users', label: 'Users', icon: <Users size={18} />, section: 'System' },
     { id: 'orders', label: 'Orders', icon: <ShoppingBag size={18} />, section: 'System' },
+    { id: 'messages', label: 'Messages', icon: <MessageSquare size={18} />, section: 'System' },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} />, section: 'System' },
 ];
 
@@ -33,6 +35,7 @@ export default function AdminDashboard() {
     const [editingUser, setEditingUser] = useState(null);
     const [orders, setOrders] = useState([]);
     const [mounted, setMounted] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     // Data
     const [courses, setCourses] = useState([]);
@@ -40,17 +43,18 @@ export default function AdminDashboard() {
     const [bookstore, setBookstore] = useState([]);
     const [liveClasses, setLiveClasses] = useState([]);
     const [users, setUsers] = useState([]);
+    const [messages, setMessages] = useState([]);
 
     useEffect(() => {
         setMounted(true);
     }, []);
 
     useEffect(() => {
-        if (!mounted || loading) return;   // wait for auth to resolve
+        if (!mounted || loading || isLoggingOut) return;   // wait for auth to resolve
         if (!isLoggedIn || !isAdmin) {
             router.push('/auth/login');
         }
-    }, [mounted, loading, isLoggedIn, isAdmin]);
+    }, [mounted, loading, isLoggedIn, isAdmin, isLoggingOut]);
 
     useEffect(() => {
         if (!mounted || !isAdmin) return;
@@ -63,6 +67,9 @@ export default function AdminDashboard() {
 
             const ordRes = await fetch('/api/admin/orders');
             if (ordRes.ok) setOrders(await ordRes.json());
+
+            const msgRes = await fetch('/api/admin/messages');
+            if (msgRes.ok) setMessages(await msgRes.json());
         };
         load();
     }, [mounted, isAdmin]);
@@ -81,13 +88,23 @@ export default function AdminDashboard() {
         if (type === 'books') setBookstore(data);
         if (type === 'classes') setLiveClasses(data);
 
-        // Persistent sync
+        // Persistent local sync
         saveData(type, data);
 
         // Sync specific item to DB if provided
         if (singleItem) {
-            await saveItemToDB(type, singleItem);
+            try {
+                const result = await saveItemToDB(type, singleItem);
+                if (!result || result.error) {
+                    alert('Warning: Changes saved locally but failed to sync with database: ' + (result?.error || 'Server error'));
+                    return false;
+                }
+            } catch (e) {
+                alert('Database sync error: ' + e.message);
+                return false;
+            }
         }
+        return true;
     };
 
     const getTypeFromTab = () => {
@@ -135,6 +152,8 @@ export default function AdminDashboard() {
             originalPrice: Number(fd.get('originalPrice')) || 0,
             videoUrl: fd.get('videoUrl')?.trim() || editingItem.videoUrl || '',
             image: fd.get('image')?.trim() || editingItem.image || '',
+            fileUrl: fd.get('fileUrl')?.trim() || editingItem.fileUrl || '',
+            stock: Number(fd.get('stock')) || editingItem.stock || 0,
             duration: fd.get('duration')?.trim() || editingItem.duration || '',
             date: fd.get('date')?.trim() || editingItem.date || '',
             time: fd.get('time')?.trim() || editingItem.time || '',
@@ -142,6 +161,7 @@ export default function AdminDashboard() {
             rating: fd.get('rating')?.trim() || editingItem.rating || '4.9',
             meetLink: fd.get('meetLink')?.trim() || editingItem.meetLink || '',
             status: fd.get('status') || editingItem.status || 'scheduled',
+            isPublished: fd.get('isPublished') === 'on' || editingItem.isPublished !== false,
         };
 
         const isNew = !current.find(i => i.id === updatedItem.id || (i.id === 0 && updatedItem.id === 0));
@@ -196,6 +216,29 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleUpdateMessageStatus = async (id, status) => {
+        const res = await fetch('/api/admin/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'update_status', id, status })
+        });
+        if (res.ok) {
+            setMessages(messages.map(m => m.id === id ? { ...m, status } : m));
+        }
+    };
+
+    const handleDeleteMessage = async (id) => {
+        if (!confirm('Delete this message?')) return;
+        const res = await fetch('/api/admin/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', id })
+        });
+        if (res.ok) {
+            setMessages(messages.filter(m => m.id !== id));
+        }
+    };
+
     // ── Overview stats ────────────────────────────────────────────────────────
     const totalRevenue = [
         ...courses, ...ebooks, ...bookstore
@@ -207,6 +250,7 @@ export default function AdminDashboard() {
         { label: 'Physical Books', value: bookstore.length, color: '#f59e0b', icon: <Package size={22} /> },
         { label: 'Live Classes', value: liveClasses.length, color: '#8b5cf6', icon: <Video size={22} /> },
         { label: 'Registered Users', value: users.length, color: '#ec4899', icon: <Users size={22} /> },
+        { label: 'Support Messages', value: messages.length, color: '#0ea5e9', icon: <MessageSquare size={22} /> },
         { label: 'Revenue (est)', value: `₹${totalRevenue}`, color: '#059669', icon: <TrendingUp size={22} /> },
     ];
 
@@ -306,6 +350,25 @@ export default function AdminDashboard() {
                     </>
                 )}
 
+                {activeTab === 'ebooks' && (
+                    <FormField
+                        label="📄 eBook File URL (Secure PDF Link)"
+                        name="fileUrl"
+                        defaultValue={editingItem.fileUrl}
+                        placeholder="https://storage.provider.com/ebook.pdf"
+                        hint="The protected link provided to users after purchase."
+                    />
+                )}
+
+                {activeTab === 'bookstore' && (
+                    <FormField
+                        label="📦 Stock Units Available"
+                        name="stock"
+                        defaultValue={editingItem.stock || 100}
+                        type="number"
+                    />
+                )}
+
                 {!isClass && (
                     <FormField
                         label="Thumbnail Image URL"
@@ -314,6 +377,11 @@ export default function AdminDashboard() {
                         placeholder="/assets/images/course_law.png"
                     />
                 )}
+
+                <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input type="checkbox" name="isPublished" defaultChecked={editingItem.isPublished !== false} id="isPublished" />
+                    <label htmlFor="isPublished" style={{ ...labelStyle, marginBottom: 0 }}>Product is Live/Published</label>
+                </div>
 
                 {isClass && (
                     <>
@@ -378,8 +446,8 @@ export default function AdminDashboard() {
                                     width: '100%', padding: '0.75rem 1rem',
                                     display: 'flex', alignItems: 'center', gap: '10px',
                                     background: activeTab === tab.id ? 'rgba(16,185,129,0.12)' : 'transparent',
+                                    border: '0',
                                     borderLeft: activeTab === tab.id ? '3px solid #10b981' : '3px solid transparent',
-                                    border: 'none', borderLeft: activeTab === tab.id ? '3px solid #10b981' : '3px solid transparent',
                                     color: activeTab === tab.id ? '#10b981' : '#64748b',
                                     fontWeight: activeTab === tab.id ? 700 : 500,
                                     fontSize: '0.88rem', cursor: 'pointer', textAlign: 'left',
@@ -404,7 +472,11 @@ export default function AdminDashboard() {
                             <div style={{ color: '#475569', fontSize: '0.7rem' }}>Administrator</div>
                         </div>
                     </div>
-                    <button onClick={() => { logout(); router.push('/'); }} style={{ width: '100%', padding: '0.65rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit' }}>
+                    <button onClick={() => {
+                        setIsLoggingOut(true);
+                        logout();
+                        router.push('/');
+                    }} style={{ width: '100%', padding: '0.65rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'inherit' }}>
                         <LogOut size={15} /> Logout
                     </button>
                 </div>
@@ -457,6 +529,7 @@ export default function AdminDashboard() {
                                         { label: 'Add Course', tab: 'courses', color: '#10b981' },
                                         { label: 'Add eBook', tab: 'ebooks', color: '#3b82f6' },
                                         { label: 'Add Book', tab: 'bookstore', color: '#f59e0b' },
+                                        { label: 'View Messages', tab: 'messages', color: '#0ea5e9' },
                                         { label: 'Add Live Class', tab: 'classes', color: '#8b5cf6' },
                                     ].map(a => (
                                         <button key={a.tab} onClick={() => setActiveTab(a.tab)} style={{ padding: '1.2rem', background: a.color + '12', border: `1.5px solid ${a.color}30`, borderRadius: '12px', color: a.color, fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -603,6 +676,73 @@ export default function AdminDashboard() {
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* ── MESSAGES ── */}
+                        {activeTab === 'messages' && (
+                            <motion.div key="messages" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                                    <div>
+                                        <h2 style={{ fontWeight: 900, fontSize: '1.5rem', marginBottom: '0.4rem' }}>Contact Messages</h2>
+                                        <p style={{ color: '#64748b' }}>Customer inquiries from your contact form.</p>
+                                    </div>
+                                    <button onClick={async () => {
+                                        const res = await fetch('/api/admin/messages');
+                                        if (res.ok) setMessages(await res.json());
+                                    }} style={{ ...btnEdit, padding: '8px 16px', fontSize: '0.8rem' }}>Refresh Messages</button>
+                                </div>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem' }}>
+                                    {messages.length === 0 && (
+                                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '5rem', background: '#fff', borderRadius: '20px', color: '#94a3b8' }}>
+                                            📬 No messages received yet.
+                                        </div>
+                                    )}
+                                    {messages.map(m => (
+                                        <div key={m.id} style={{
+                                            background: '#fff', borderRadius: '16px', padding: '1.5rem',
+                                            border: '1px solid #e2e8f0', position: 'relative',
+                                            boxShadow: m.status === 'new' ? '0 10px 25px rgba(16,185,129,0.08)' : 'none'
+                                        }}>
+                                            {m.status === 'new' && (
+                                                <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#10b981', color: '#fff', fontSize: '0.65rem', fontWeight: 900, padding: '3px 8px', borderRadius: '4px' }}>NEW</div>
+                                            )}
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.2rem' }}>
+                                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#475569' }}>
+                                                    {m.name?.[0]?.toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>{m.name}</div>
+                                                    <div style={{ color: '#64748b', fontSize: '0.75rem' }}>{m.email}</div>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ marginBottom: '1rem' }}>
+                                                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' }}>Subject</div>
+                                                <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>{m.subject}</div>
+                                            </div>
+
+                                            <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '12px', marginBottom: '1.5rem' }}>
+                                                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>Message</div>
+                                                <div style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{m.message}</div>
+                                            </div>
+
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1rem' }}>
+                                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                                    {new Date(m.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    {m.status === 'new' && (
+                                                        <button onClick={() => handleUpdateMessageStatus(m.id, 'read')} style={{ ...btnEdit, color: '#059669', background: '#ecfdf5', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800 }}>Mark as Read</button>
+                                                    )}
+                                                    <button onClick={() => handleDeleteMessage(m.id)} style={{ ...btnDel, padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800 }}>Delete</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </motion.div>
                         )}

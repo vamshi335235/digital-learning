@@ -94,7 +94,7 @@ export default function Footer() {
                                 </li>
                             ))}
                             <li>
-                                <Link href="/admin/login" style={{ color: '#10b981', textDecoration: 'none', fontSize: isMobile ? '0.78rem' : '0.88rem', fontWeight: 700 }}>
+                                <Link href="/admin" style={{ color: '#10b981', textDecoration: 'none', fontSize: isMobile ? '0.78rem' : '0.88rem', fontWeight: 700 }}>
                                     Instructor Portal
                                 </Link>
                             </li>

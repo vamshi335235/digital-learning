@@ -155,8 +155,8 @@ async function main() {
     console.log('✅ Live classes seeded');
 
     console.log('\n🎉 Database seeded successfully!');
-    console.log('📧 Admin login: admin@kantrilawyer.com');
-    console.log('🔑 Admin password: admin@kantri2026');
+    console.log('📧 Admin login: admin@gmail.com');
+    console.log('🔑 Admin password: admin123');
 }
 
 main()

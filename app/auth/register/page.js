@@ -17,16 +17,21 @@ const PERKS = [
 export default function RegisterPage() {
     const router = useRouter();
     const { login } = useAuth();
-    const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+    const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
     const [showPass, setShowPass] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const validate = () => {
-        if (!form.name.trim()) return 'Full name is required.';
-        if (!form.email) return 'Email address is required.';
+        if (!form.name.trim()) return 'Full name is mandatory.';
+        if (!form.phone.trim()) return 'Phone number is mandatory.';
+        if (!/^\d{10}$/.test(form.phone)) return 'Phone number must be exactly 10 digits.';
+        if (!form.email.trim()) return 'Email address is mandatory.';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Please enter a valid email address.';
-        if (form.password.length < 6) return 'Password must be at least 6 characters.';
+        if (!form.password) return 'Password is mandatory.';
+        if (form.password.length < 8) return 'Password must be at least 8 characters long.';
+        if (!/[A-Z]/.test(form.password)) return 'Password must include at least one capital letter.';
+        if (!form.confirm) return 'Please confirm your password.';
         if (form.password !== form.confirm) return 'Passwords do not match.';
         return null;
     };
@@ -39,7 +44,12 @@ export default function RegisterPage() {
 
         setLoading(true);
         try {
-            const session = await registerUser({ name: form.name, email: form.email, password: form.password });
+            const session = await registerUser({
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                password: form.password
+            });
             login(session);
             router.push('/dashboard');
         } catch (err) {
@@ -52,9 +62,9 @@ export default function RegisterPage() {
 
     const passwordStrength = () => {
         if (!form.password) return null;
-        if (form.password.length < 6) return { label: 'Too short', color: '#ef4444', width: '25%' };
-        if (form.password.length < 8) return { label: 'Weak', color: '#f59e0b', width: '50%' };
-        if (/[A-Z]/.test(form.password) && /[0-9]/.test(form.password)) return { label: 'Strong', color: '#10b981', width: '100%' };
+        if (form.password.length < 8) return { label: 'Too short (Min. 8)', color: '#ef4444', width: '25%' };
+        if (!/[A-Z]/.test(form.password)) return { label: 'Needs Capital Letter', color: '#f59e0b', width: '50%' };
+        if (/[0-9]/.test(form.password)) return { label: 'Strong', color: '#10b981', width: '100%' };
         return { label: 'Medium', color: '#3b82f6', width: '75%' };
     };
     const strength = passwordStrength();
@@ -114,15 +124,24 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {/* Email */}
-                        <div>
-                            <label style={labelStyle}>Email Address <span style={{ color: '#dc2626' }}>*</span></label>
-                            <div style={{ position: 'relative' }}>
-                                <Mail size={16} style={iconStyle} />
-                                <input type="email" placeholder="you@example.com" value={form.email}
-                                    onChange={e => setForm({ ...form, email: e.target.value })} style={inputStyle} />
+                        {/* Email and Phone Row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={labelStyle}>Email Address <span style={{ color: '#dc2626' }}>*</span></label>
+                                <div style={{ position: 'relative' }}>
+                                    <Mail size={16} style={iconStyle} />
+                                    <input type="email" placeholder="you@example.com" value={form.email}
+                                        onChange={e => setForm({ ...form, email: e.target.value })} style={inputStyle} />
+                                </div>
                             </div>
-                            <p style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '4px' }}>Must be unique. Used for login and notifications.</p>
+                            <div>
+                                <label style={labelStyle}>Phone <span style={{ color: '#dc2626' }}>*</span></label>
+                                <div style={{ position: 'relative' }}>
+                                    <Phone size={16} style={iconStyle} />
+                                    <input type="text" placeholder="10 digits" value={form.phone}
+                                        onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} style={inputStyle} />
+                                </div>
+                            </div>
                         </div>
 
                         {/* Password */}
