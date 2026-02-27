@@ -1,25 +1,34 @@
-
+// verify_db_connection.js
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
-async function testConnection() {
+async function main() {
+    const prisma = new PrismaClient();
     try {
-        console.log('Connecting to PostgreSQL...');
-        const count = await prisma.course.count();
-        console.log('✅ Connection Successful!');
-        console.log('Total courses in database:', count);
+        console.log('--- Testing Database Connection ---');
+        console.log('Attempting to connect...');
 
-        const courses = await prisma.course.findMany({ take: 1 });
-        if (courses.length > 0) {
-            console.log('Sample Data (First Course):', courses[0].title);
+        // Perform a simple query
+        const userCount = await prisma.user.count();
+        const courseCount = await prisma.course.count();
+
+        console.log('✅ Connection Successful!');
+        console.log(`📊 Current Stats:`);
+        console.log(`- Users: ${userCount}`);
+        console.log(`- Courses: ${courseCount}`);
+
+        const admin = await prisma.user.findFirst({ where: { role: 'admin' } });
+        if (admin) {
+            console.log(`👑 Admin user found: ${admin.email}`);
         } else {
-            console.log('Database is empty (needs seeding).');
+            console.log('⚠️ No admin user found. Did you run prisma db seed?');
         }
-    } catch (e) {
-        console.error('❌ Connection Failed:', e.message);
+
+    } catch (error) {
+        console.error('❌ Connection Failed!');
+        console.error('Error Details:', error.message);
     } finally {
         await prisma.$disconnect();
     }
 }
 
-testConnection();
+main();
