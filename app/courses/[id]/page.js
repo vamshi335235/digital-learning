@@ -73,6 +73,14 @@ export default function CourseDetail({ params }) {
     const [isPurchased, setIsPurchased] = useState(false);
     const [openModule, setOpenModule] = useState(0);
     const [selectedLesson, setSelectedLesson] = useState(DEFAULT_CURRICULUM[0].lessons[0]);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth <= 768);
+        check();
+        window.addEventListener('resize', check);
+        return () => window.removeEventListener('resize', check);
+    }, []);
 
     useEffect(() => {
         const courses = getData('courses');
@@ -103,41 +111,9 @@ export default function CourseDetail({ params }) {
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--background)' }}>
-            <style>{`
-                .cd-hero { padding-top: 100px; padding-bottom: 3rem; }
-                .cd-hero h1 { font-size: 2.6rem; }
-                .cd-meta { gap: 1.5rem; }
-                .cd-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 370px;
-                    gap: 2.5rem;
-                    align-items: start;
-                }
-                .cd-sidebar { position: sticky; top: 90px; }
-                .cd-outcomes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-                .cd-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-                .cd-buy-btn {
-                    display: flex; align-items: center; justify-content: center; gap: 8px;
-                    width: 100%; padding: 0.95rem;
-                    background: var(--primary); color: #fff;
-                    font-weight: 800; font-size: 1.05rem; border-radius: 12px;
-                    text-decoration: none; margin-bottom: 0.8rem;
-                }
-                @media (max-width: 900px) {
-                    .cd-grid { grid-template-columns: 1fr !important; }
-                    .cd-sidebar { position: static !important; }
-                }
-                @media (max-width: 768px) {
-                    .cd-hero { padding-top: 85px !important; padding-bottom: 2rem !important; }
-                    .cd-hero h1 { font-size: clamp(1.4rem, 5vw, 2rem) !important; }
-                    .cd-meta { gap: 0.8rem !important; flex-wrap: wrap !important; }
-                    .cd-outcomes { grid-template-columns: 1fr !important; gap: 0.7rem !important; }
-                    .cd-stats { grid-template-columns: 1fr 1fr !important; }
-                }
-            `}</style>
 
             {/* Dark Hero */}
-            <div className="cd-hero" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
+            <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', paddingTop: isMobile ? '85px' : '100px', paddingBottom: isMobile ? '2rem' : '3rem' }}>
                 <div className="container">
                     <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem' }}>
                         <Link href="/courses" style={{ color: '#10b981' }}>Courses</Link> / {course.category}
@@ -146,31 +122,36 @@ export default function CourseDetail({ params }) {
                         <span style={{ background: 'rgba(16,185,129,0.2)', color: '#10b981', padding: '3px 12px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase' }}>{course.category}</span>
                         <span style={{ background: 'rgba(255,255,255,0.08)', color: '#94a3b8', padding: '3px 12px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>RECORDED COURSE</span>
                     </div>
-                    <h1 style={{ fontWeight: 900, color: '#fff', lineHeight: 1.2, marginBottom: '1rem', maxWidth: '750px' }}>{course.title}</h1>
-                    <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.7, maxWidth: '680px', marginBottom: '1.5rem' }}>{course.description}</p>
-                    <div className="cd-meta" style={{ display: 'flex', flexWrap: 'wrap' }}>
+                    <h1 style={{ fontWeight: 900, color: '#fff', lineHeight: 1.2, marginBottom: '1rem', maxWidth: '750px', fontSize: isMobile ? 'clamp(1.3rem, 5vw, 1.9rem)' : '2.6rem' }}>{course.title}</h1>
+                    <p style={{ color: '#94a3b8', fontSize: isMobile ? '0.88rem' : '0.95rem', lineHeight: 1.7, maxWidth: '680px', marginBottom: '1.5rem' }}>{course.description}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: isMobile ? '0.8rem' : '1.5rem' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}><Star size={14} fill="currentColor" /> {course.rating || '4.9'} Rating</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.85rem' }}><Clock size={14} /> 7.5 Hours</span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.85rem' }}><PlayCircle size={14} /> {totalLessons} Lessons</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.85rem' }}><Globe size={14} /> English / Telugu</span>
+                        {!isMobile && <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94a3b8', fontSize: '0.85rem' }}><Globe size={14} /> English / Telugu</span>}
                     </div>
                 </div>
             </div>
 
             {/* Main content */}
-            <div className="container" style={{ paddingTop: '2.5rem', paddingBottom: '6rem' }}>
-                <div className="cd-grid">
+            <div className="container" style={{ paddingTop: isMobile ? '1.5rem' : '2.5rem', paddingBottom: '4rem' }}>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: isMobile ? '1fr' : '1fr 370px',
+                    gap: isMobile ? '1.5rem' : '2.5rem',
+                    alignItems: 'start'
+                }}>
 
                     {/* LEFT: Video + Info */}
-                    <div>
-                        <div id="video-player-area" style={{ marginBottom: '1.2rem', background: '#000', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-                            <div style={{ background: '#111', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ minWidth: 0 }}>
+                        <div id="video-player-area" style={{ marginBottom: '1.2rem', background: '#000', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.15)' }}>
+                            <div style={{ background: '#111', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                                 <PlayCircle size={15} style={{ color: '#10b981', flexShrink: 0 }} />
-                                <span style={{ color: '#e2e8f0', fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span style={{ color: '#e2e8f0', fontSize: '0.78rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                     Now Playing: <strong>{selectedLesson.title}</strong>
                                 </span>
                                 {!canPlayLesson(selectedLesson) && (
-                                    <span style={{ marginLeft: 'auto', color: '#ef4444', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                                    <span style={{ color: '#ef4444', fontSize: '0.72rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                                         <Lock size={11} /> LOCKED
                                     </span>
                                 )}
@@ -184,27 +165,22 @@ export default function CourseDetail({ params }) {
                         </div>
 
                         {/* What You'll Learn */}
-                        <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1.2rem' }}>
-                            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="glass-card" style={{ padding: '1.2rem', marginBottom: '1.2rem' }}>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Target style={{ color: 'var(--primary)' }} size={18} /> What You'll Learn
                             </h2>
-                            <div className="cd-outcomes">
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '0.7rem' : '1rem' }}>
                                 {OUTCOMES.map((item, i) => (
                                     <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                                        <CheckSquare size={15} style={{ color: 'var(--primary)', marginTop: '3px', flexShrink: 0 }} />
-                                        <span style={{ fontSize: '0.88rem', lineHeight: 1.5 }}>{item}</span>
+                                        <CheckSquare size={14} style={{ color: 'var(--primary)', marginTop: '3px', flexShrink: 0 }} />
+                                        <span style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>{item}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Purchase card on mobile — shown here between video and stats */}
-                        <div style={{ display: 'none' }} className="cd-mobile-purchase">
-                            {/* Rendered via sidebar on desktop; on mobile we duplicate via CSS trick below */}
-                        </div>
-
                         {/* Stats */}
-                        <div className="cd-stats">
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                             {[
                                 { icon: <Video size={20} />, label: 'Video Lessons', value: `${totalLessons} Lessons` },
                                 { icon: <Users size={20} />, label: 'Taught By', value: 'Uday Kantri' },
@@ -220,7 +196,7 @@ export default function CourseDetail({ params }) {
                     </div>
 
                     {/* RIGHT: Purchase Card + Curriculum */}
-                    <div className="cd-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ position: isMobile ? 'static' : 'sticky', top: '90px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
                         {/* Purchase Card */}
                         <div style={{ background: '#fff', borderRadius: '18px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.09)', border: '1.5px solid rgba(0,0,0,0.07)' }}>
