@@ -52,7 +52,7 @@ export default function AdminDashboard() {
     useEffect(() => {
         if (!mounted || loading || isLoggingOut) return;   // wait for auth to resolve
         if (!isLoggedIn || !isAdmin) {
-            router.push('/auth/login');
+            router.replace('/');  // Redirect to homepage, NOT login page
         }
     }, [mounted, loading, isLoggedIn, isAdmin, isLoggingOut]);
 
@@ -74,9 +74,14 @@ export default function AdminDashboard() {
         load();
     }, [mounted, isAdmin]);
 
-    if (!mounted || loading || !isAdmin) return (
+    if (isLoggingOut) return (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>
-            <ShieldCheck size={24} style={{ marginRight: 12, color: '#10b981' }} /> Verifying admin access...
+            <LogOut size={24} style={{ marginRight: 12, color: '#10b981' }} /> Logging out...
+        </div>
+    );
+
+    if (!mounted || loading || !isAdmin) return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a' }}>
         </div>
     );
 
