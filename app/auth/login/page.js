@@ -113,7 +113,7 @@ export default function LoginPage() {
                     <div style={{ marginTop: '1.5rem', padding: '12px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <ShieldCheck size={16} style={{ color: '#059669', flexShrink: 0 }} />
                         <span style={{ fontSize: '0.78rem', color: '#059669' }}>
-                            Admin: <strong>admin@kantrilawyer.com</strong> / <strong>admin@kantri2026</strong>
+                            Admin: <strong>admin@gmail.com</strong> / <strong>admin123</strong>
                         </span>
                     </div>
 
