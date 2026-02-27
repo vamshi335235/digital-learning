@@ -123,50 +123,80 @@ export default function Dashboard() {
 
     return (
         <div style={{ background: 'var(--background)', minHeight: '100vh', paddingBottom: '6rem' }}>
+            <style>{`
+                .db-grid { display: grid; grid-template-columns: 240px 1fr; gap: 2rem; align-items: start; }
+                .db-sidebar-wrap { position: sticky; top: 90px; }
+                .db-banner-h1 { font-size: 1.8rem; }
+                .db-banner { padding: 3rem 0 5rem; }
+                .db-banner-inner { display: flex; align-items: center; gap: 1.5rem; }
+                .db-avatar { width: 70px; height: 70px; font-size: 1.6rem; }
+                @media (max-width: 768px) {
+                    .db-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+                    .db-sidebar-wrap { position: static !important; }
+                    .db-sidebar-tabs { display: flex !important; overflow-x: auto !important; gap: 0 !important; padding-bottom: 4px; }
+                    .db-sidebar-tabs button { min-width: max-content !important; border-left: none !important; border-bottom: 3px solid transparent !important; border-radius: 0 !important; padding: 0.8rem 1rem !important; font-size: 0.82rem !important; }
+                    .db-sidebar-tabs button.active-tab { border-bottom-color: #059669 !important; border-left: none !important; }
+                    .db-sidebar-stats { display: none !important; }
+                    .db-banner { padding: 2rem 0 4rem !important; }
+                    .db-banner-inner { gap: 1rem !important; }
+                    .db-banner-h1 { font-size: 1.3rem !important; }
+                    .db-avatar { width: 52px !important; height: 52px !important; font-size: 1.2rem !important; }
+                    .db-logout-btn span { display: none; }
+                }
+                @media (max-width: 480px) {
+                    .card-row-mobile { flex-wrap: wrap !important; }
+                    .card-row-mobile .card-action { width: 100% !important; justify-content: center !important; margin-top: 0.5rem; }
+                }
+            `}</style>
+
             {/* Top Banner */}
-            <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', padding: '3rem 0 5rem' }}>
-                <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 900, color: '#fff', flexShrink: 0 }}>
-                        {initials}
+            <div className="db-banner" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)' }}>
+                <div className="container">
+                    <div className="db-banner-inner">
+                        <div className="db-avatar" style={{ borderRadius: '50%', background: 'linear-gradient(135deg,#10b981,#059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#fff', flexShrink: 0 }}>
+                            {initials}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                            <h1 className="db-banner-h1" style={{ fontWeight: 900, color: '#fff', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                Welcome, {user.name?.split(' ')[0]}! 👋
+                            </h1>
+                            <p style={{ color: '#64748b', fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+                        </div>
+                        <button className="db-logout-btn" onClick={() => { logout(); router.push('/'); }} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#ef4444', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
+                            <LogOut size={16} /> <span>Logout</span>
+                        </button>
                     </div>
-                    <div>
-                        <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#fff', marginBottom: '4px' }}>
-                            Welcome, {user.name?.split(' ')[0]}! 👋
-                        </h1>
-                        <p style={{ color: '#64748b', fontSize: '0.9rem' }}>{user.email}</p>
-                    </div>
-                    <button onClick={() => { logout(); router.push('/'); }} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', padding: '0.6rem 1.2rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', color: '#ef4444', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem' }}>
-                        <LogOut size={16} /> Logout
-                    </button>
                 </div>
             </div>
 
             <div className="container" style={{ marginTop: '-3rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '2rem', alignItems: 'start' }}>
+                <div className="db-grid">
 
                     {/* Sidebar */}
-                    <div style={{ position: 'sticky', top: '90px' }}>
-                        <div style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                    <div className="db-sidebar-wrap">
+                        <div className="db-sidebar-tabs" style={{ background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.06)' }}>
                             {TABS.map(tab => (
-                                <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
-                                    width: '100%', padding: '1rem 1.5rem',
-                                    display: 'flex', alignItems: 'center', gap: '12px',
-                                    background: activeTab === tab.key ? 'rgba(5,150,105,0.07)' : 'transparent',
-                                    borderLeft: activeTab === tab.key ? '3px solid #059669' : '3px solid transparent',
-                                    border: 'none', borderLeft: activeTab === tab.key ? '3px solid #059669' : '3px solid transparent',
-                                    color: activeTab === tab.key ? '#059669' : '#64748b',
-                                    fontWeight: activeTab === tab.key ? 800 : 500,
-                                    fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left',
-                                    fontFamily: 'inherit', transition: '0.15s',
-                                    borderBottom: '1px solid #f1f5f9'
-                                }}>
+                                <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                                    className={activeTab === tab.key ? 'active-tab' : ''}
+                                    style={{
+                                        width: '100%', padding: '1rem 1.5rem',
+                                        display: 'flex', alignItems: 'center', gap: '10px',
+                                        background: activeTab === tab.key ? 'rgba(5,150,105,0.07)' : 'transparent',
+                                        borderLeft: activeTab === tab.key ? '3px solid #059669' : '3px solid transparent',
+                                        border: 'none',
+                                        color: activeTab === tab.key ? '#059669' : '#64748b',
+                                        fontWeight: activeTab === tab.key ? 800 : 500,
+                                        fontSize: '0.88rem', cursor: 'pointer', textAlign: 'left',
+                                        fontFamily: 'inherit', transition: '0.15s',
+                                        borderBottom: '1px solid #f1f5f9', whiteSpace: 'nowrap'
+                                    }}>
                                     {tab.icon} {tab.label}
                                 </button>
                             ))}
                         </div>
 
                         {/* Quick Stats */}
-                        <div style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', marginTop: '1rem', boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                        <div className="db-sidebar-stats" style={{ background: '#fff', borderRadius: '16px', padding: '1.5rem', marginTop: '1rem', boxShadow: '0 4px 20px rgba(0,0,0,0.07)', border: '1px solid rgba(0,0,0,0.06)' }}>
                             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem' }}>Summary</div>
                             {[
                                 { label: 'Courses', val: myCourses.length, icon: <Play size={14} />, color: '#10b981' },

@@ -46,6 +46,25 @@ function CoursesContent() {
 
     return (
         <>
+            <style>{`
+                .courses-hero-h1 { font-size: 3.5rem; }
+                .course-card { flex-direction: row; }
+                .course-thumb { width: 200px; min-height: 150px; }
+                .course-bottom { flex-direction: row; }
+                .course-price-btn { flex-direction: row; }
+                @media (max-width: 768px) {
+                    .courses-hero-h1 { font-size: clamp(1.8rem, 6vw, 2.5rem) !important; }
+                    .course-card { flex-direction: column !important; }
+                    .course-thumb { width: 100% !important; min-height: 180px !important; }
+                    .course-info { padding: 1rem !important; }
+                    .course-bottom { flex-direction: column !important; gap: 0.8rem !important; align-items: flex-start !important; }
+                    .course-price-btn { flex-direction: row !important; justify-content: space-between; width: 100%; }
+                    .course-title { font-size: 1rem !important; }
+                    .cat-pills { gap: 6px !important; }
+                    .cat-pill { padding: 6px 12px !important; font-size: 0.8rem !important; }
+                }
+            `}</style>
+
             <div style={{ minHeight: '100vh', background: 'var(--background)' }}>
 
                 {/* Hero Banner */}
@@ -58,10 +77,10 @@ function CoursesContent() {
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(5,150,105,0.2)', border: '1px solid rgba(5,150,105,0.4)', padding: '5px 16px', borderRadius: '20px', marginBottom: '1.5rem', color: '#10b981', fontSize: '0.8rem', fontWeight: 700 }}>
                             <Video size={14} /> RECORDED COURSES
                         </div>
-                        <h1 style={{ fontSize: '3.5rem', fontWeight: 900, color: '#fff', marginBottom: '1rem', lineHeight: 1.1 }}>
+                        <h1 className="courses-hero-h1" style={{ fontWeight: 900, color: '#fff', marginBottom: '1rem', lineHeight: 1.1 }}>
                             Master Legal <span style={{ color: '#10b981' }}>Excellence</span>
                         </h1>
-                        <p style={{ color: '#94a3b8', fontSize: '1.1rem', maxWidth: '550px', margin: '0 auto' }}>
+                        <p style={{ color: '#94a3b8', fontSize: '1.1rem', maxWidth: '550px', margin: '0 auto', padding: '0 1rem' }}>
                             Expert-led recorded courses for Osmania, Kakatiya and all state university syllabi.
                         </p>
                     </div>
@@ -70,10 +89,11 @@ function CoursesContent() {
                 <div className="container" style={{ paddingTop: '3rem', paddingBottom: '8rem' }}>
 
                     {/* Category Filter Pills */}
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '3rem', justifyContent: 'center' }}>
+                    <div className="cat-pills" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '3rem', justifyContent: 'center' }}>
                         {CATEGORIES.map(cat => (
                             <button
                                 key={cat}
+                                className="cat-pill"
                                 onClick={() => setActiveCategory(cat)}
                                 style={{
                                     padding: '8px 20px',
@@ -113,12 +133,11 @@ function CoursesContent() {
                                     initial={{ opacity: 0, y: 16 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.05 }}
-                                    className="glass-card"
+                                    className="glass-card course-card"
                                     style={{
                                         padding: '0',
                                         overflow: 'hidden',
                                         display: 'flex',
-                                        flexDirection: 'row',
                                         cursor: 'pointer',
                                         transition: 'box-shadow 0.2s, transform 0.2s'
                                     }}
@@ -126,14 +145,12 @@ function CoursesContent() {
                                     onClick={() => handleCourseClick(course.id)}
                                 >
                                     {/* Thumbnail */}
-                                    <div style={{
-                                        width: '200px',
+                                    <div className="course-thumb" style={{
                                         flexShrink: 0,
                                         background: 'linear-gradient(135deg, #0f172a, #1e3a5f)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        minHeight: '150px',
                                         position: 'relative',
                                         overflow: 'hidden'
                                     }}>
@@ -148,18 +165,18 @@ function CoursesContent() {
                                     </div>
 
                                     {/* Info */}
-                                    <div style={{ padding: '1.8rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                    <div className="course-info" style={{ padding: '1.8rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                         <div>
                                             <div style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '0.6rem' }}>
                                                 {course.category}
                                             </div>
-                                            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.6rem', lineHeight: 1.3 }}>{course.title}</h2>
-                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '0' }}>
+                                            <h2 className="course-title" style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '0.6rem', lineHeight: 1.3 }}>{course.title}</h2>
+                                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.6 }}>
                                                 {course.description.length > 110 ? course.description.substring(0, 110) + '...' : course.description}
                                             </p>
                                         </div>
 
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.2rem' }}>
+                                        <div className="course-bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.2rem' }}>
                                             <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
                                                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', fontWeight: 700, color: '#b45309' }}>
                                                     <Star size={14} fill="#fbbf24" color="#fbbf24" /> {course.rating || '4.9'}
@@ -171,7 +188,7 @@ function CoursesContent() {
                                                 )}
                                             </div>
 
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+                                            <div className="course-price-btn" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
                                                 <div>
                                                     <span style={{ fontSize: '1.4rem', fontWeight: 900 }}>₹{course.price}</span>
                                                     <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'line-through', marginLeft: '6px' }}>₹{course.originalPrice}</span>
@@ -180,13 +197,13 @@ function CoursesContent() {
                                                     onClick={e => { e.stopPropagation(); handleCourseClick(course.id); }}
                                                     style={{
                                                         display: 'inline-flex', alignItems: 'center', gap: '6px',
-                                                        padding: '0.7rem 1.4rem',
+                                                        padding: '0.7rem 1.2rem',
                                                         background: 'var(--primary)', color: '#fff',
-                                                        borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
+                                                        borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem',
                                                         border: 'none', cursor: 'pointer', flexShrink: 0
                                                     }}
                                                 >
-                                                    View Course <ArrowRight size={15} />
+                                                    View <ArrowRight size={14} />
                                                 </button>
                                             </div>
                                         </div>
