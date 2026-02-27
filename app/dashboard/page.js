@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getData } from '@/lib/db';
-import { getAllUsers, saveAllUsers, hashPassword, verifyPassword } from '@/lib/auth';
+import { ROLES } from '@/lib/auth';
 import Link from 'next/link';
 
 const TABS = [
@@ -23,7 +23,7 @@ const TABS = [
 ];
 
 export default function Dashboard() {
-    const { user, logout, login, isLoggedIn, isAdmin, loading } = useAuth();
+    const { user, logout, login, isLoggedIn, isAdmin, loading, purchases } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('courses');
 
@@ -50,67 +50,28 @@ export default function Dashboard() {
     }, [loading, isLoggedIn, isAdmin]);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !purchases) return;
         setProfile({ name: user.name || '', email: user.email || '', phone: user.phone || '' });
-
-        const purchasedCourseIds = JSON.parse(localStorage.getItem('purchased_courses') || '[]').map(String);
-        const purchasedEbookIds = JSON.parse(localStorage.getItem('purchased_ebooks') || '[]').map(String);
-        const purchasedBookIds = JSON.parse(localStorage.getItem('purchased_books') || '[]').map(String);
 
         const allCourses = getData('courses');
         const allEbooks = getData('ebooks');
         const allBooks = getData('books');
         const allClasses = getData('classes');
 
-        const purchasedClassIds = JSON.parse(localStorage.getItem(`user_${user.id}_purchases`) || '[]')
-            .filter(p => p.type === 'class').map(p => String(p.id));
-
-        setMyCourses(allCourses.filter(c => purchasedCourseIds.includes(String(c.id))));
-        setMyEbooks(allEbooks.filter(e => purchasedEbookIds.includes(String(e.id))));
-        setMyClasses(allClasses.filter(c => purchasedClassIds.includes(String(c.id))));
-        setMyOrders(allBooks.filter(b => purchasedBookIds.includes(String(b.id))));
-    }, [user]);
+        setMyCourses(allCourses.filter(c => purchases.courses.includes(Number(c.id))));
+        setMyEbooks(allEbooks.filter(e => purchases.ebooks.includes(Number(e.id))));
+        setMyClasses(allClasses.filter(c => purchases.classes.includes(Number(c.id))));
+        setMyOrders(allBooks.filter(b => purchases.books.includes(Number(b.id))));
+    }, [user, purchases]);
 
     // ── Profile Update ──────────────────────────────────────────────────────
     const handleProfileSave = () => {
-        if (!profile.name.trim()) { setProfileMsg('❌ Name cannot be empty.'); return; }
-        const users = getAllUsers();
-        const idx = users.findIndex(u => u.email === user.email);
-        if (idx !== -1) {
-            users[idx].name = profile.name.trim();
-            users[idx].phone = profile.phone.trim();
-            saveAllUsers(users);
-            login({ ...user, name: profile.name.trim(), phone: profile.phone.trim() });
-            setProfileMsg('✅ Profile updated successfully!');
-            setTimeout(() => setProfileMsg(''), 3000);
-        }
+        alert('Profile updates are coming soon in the next update!');
     };
 
     // ── Password Change ─────────────────────────────────────────────────────
     const handlePasswordChange = async () => {
-        setPwMsg({ text: '', type: '' });
-        if (!pwForm.current || !pwForm.newPw || !pwForm.confirm) {
-            setPwMsg({ text: 'All fields are required.', type: 'error' }); return;
-        }
-        if (pwForm.newPw.length < 6) {
-            setPwMsg({ text: 'New password must be at least 6 characters.', type: 'error' }); return;
-        }
-        if (pwForm.newPw !== pwForm.confirm) {
-            setPwMsg({ text: 'New passwords do not match.', type: 'error' }); return;
-        }
-
-        const users = getAllUsers();
-        const idx = users.findIndex(u => u.email === user.email);
-        if (idx === -1) { setPwMsg({ text: 'User not found.', type: 'error' }); return; }
-
-        const valid = await verifyPassword(pwForm.current, users[idx].passwordHash);
-        if (!valid) { setPwMsg({ text: 'Current password is incorrect.', type: 'error' }); return; }
-
-        users[idx].passwordHash = await hashPassword(pwForm.newPw);
-        saveAllUsers(users);
-        setPwForm({ current: '', newPw: '', confirm: '' });
-        setPwMsg({ text: '✅ Password changed successfully!', type: 'success' });
-        setTimeout(() => setPwMsg({ text: '', type: '' }), 3000);
+        alert('Password change functionality is coming soon!');
     };
 
     if (loading || !user) return (
