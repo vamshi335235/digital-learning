@@ -36,34 +36,88 @@ export default function Home() {
 
     return (
         <div className="container">
-            {/* Hero Section */}
-            <section style={{
-                textAlign: 'center',
-                padding: '6rem 0',
-                background: 'radial-gradient(circle at center, rgba(0, 255, 136, 0.05) 0%, transparent 70%)'
-            }}>
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{ fontSize: '4.4rem', marginBottom: '1.5rem', fontWeight: 800 }}
-                >
+            <style>{`
+                /* ── Hero ── */
+                .home-hero { text-align: center; padding: 6rem 0; background: radial-gradient(circle at center, rgba(0,255,136,0.05) 0%, transparent 70%); }
+                .home-hero h1 { font-size: 4.4rem; margin-bottom: 1.5rem; font-weight: 800; }
+                .home-hero p { font-size: 1.25rem; color: var(--text-muted); max-width: 800px; margin: 0 auto 3rem; }
+                .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+                /* ── Why Choose ── */
+                .why-section { padding: 6rem 0; }
+                .why-section h2 { text-align: center; margin-bottom: 4rem; font-size: 2.5rem; }
+
+                /* ── Featured Course ── */
+                .featured-section { padding: 6rem 0; }
+                .featured-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem; }
+                .featured-header h2 { font-size: 2.8rem; }
+                .featured-card {
+                    display: grid;
+                    grid-template-columns: 1.2fr 1fr;
+                    gap: 4rem;
+                    padding: 3rem;
+                    align-items: center;
+                }
+                .featured-price-row { display: flex; gap: 3rem; margin-bottom: 2.5rem; }
+                .featured-price-divider { border-left: 2px solid #e2e8f0; padding-left: 3rem; }
+
+                /* ── Resources ── */
+                .resources-section { padding: 6rem 0; }
+                .resources-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem; }
+                .resources-header h2 { font-size: 2.8rem; }
+
+                /* ── CTA ── */
+                .cta-section {
+                    margin: 6rem 0;
+                    padding: 5rem 3rem;
+                    text-align: center;
+                    background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(59,130,246,0.05));
+                    border-radius: 32px;
+                    border: 1px solid rgba(255,255,255,0.05);
+                }
+                .cta-section h2 { font-size: 3.5rem; margin-bottom: 1.5rem; font-weight: 800; }
+                .cta-section p { color: var(--text-muted); margin-bottom: 2.5rem; font-size: 1.1rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+                /* ── MOBILE ── */
+                @media (max-width: 768px) {
+                    .home-hero { padding: 4rem 0 3rem; }
+                    .home-hero h1 { font-size: clamp(2rem, 8vw, 3rem) !important; }
+                    .home-hero p { font-size: 1rem !important; padding: 0 0.5rem; margin-bottom: 2rem; }
+
+                    .why-section { padding: 3rem 0; }
+                    .why-section h2 { font-size: 1.8rem !important; margin-bottom: 2rem; }
+
+                    .featured-section { padding: 3rem 0; }
+                    .featured-header h2 { font-size: 1.8rem !important; }
+                    .featured-card {
+                        grid-template-columns: 1fr !important;
+                        gap: 1.5rem !important;
+                        padding: 1.5rem !important;
+                    }
+                    .featured-price-row { gap: 1.5rem !important; margin-bottom: 1.5rem !important; }
+                    .featured-price-divider { padding-left: 1.5rem !important; }
+                    .featured-h3 { font-size: 1.4rem !important; }
+                    .featured-enroll-btn { width: 100% !important; justify-content: center !important; font-size: 0.95rem !important; height: auto !important; padding: 0.9rem 1.5rem !important; border-radius: 12px !important; }
+
+                    .resources-section { padding: 3rem 0; }
+                    .resources-header h2 { font-size: 1.8rem !important; }
+
+                    .cta-section { margin: 3rem 0 !important; padding: 3rem 1.5rem !important; border-radius: 20px !important; }
+                    .cta-section h2 { font-size: clamp(1.6rem, 6vw, 2.5rem) !important; margin-bottom: 1rem !important; }
+                    .cta-section p { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; }
+                }
+            `}</style>
+
+            {/* ── Hero Section ── */}
+            <section className="home-hero">
+                <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <span className="gradient-text">Kantri Lawyer</span> <br />
                     Excellence in Legal Learning
                 </motion.h1>
-                <motion.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    style={{ fontSize: '1.25rem', color: 'var(--text-muted)', maxWidth: '800px', margin: '0 auto 3rem' }}
-                >
+                <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     Kantri by Awareness, Honest by Conscience. Access world-class legal education resources tailored for your success.
                 </motion.p>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}
-                >
+                <motion.div className="hero-btns" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                     <Link href="/courses" className="btn-primary">
                         Browse Courses <ArrowRight size={20} />
                     </Link>
@@ -73,9 +127,9 @@ export default function Home() {
                 </motion.div>
             </section>
 
-            {/* Features Grid */}
-            <section style={{ padding: '6rem 0' }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '4rem', fontSize: '2.5rem' }}>Why Choose <span className="gradient-text">Kantri Lawyer?</span></h2>
+            {/* ── Features Grid ── */}
+            <section className="why-section">
+                <h2>Why Choose <span className="gradient-text">Kantri Lawyer?</span></h2>
                 <div className="grid-4">
                     {features.map((f, i) => (
                         <Link key={i} href={f.link}>
@@ -83,72 +137,74 @@ export default function Home() {
                                 whileHover={{ y: -8, scale: 1.02 }}
                                 className="glass-card"
                                 style={{
-                                    textAlign: 'center',
-                                    padding: '2rem 1.2rem',
-                                    cursor: 'pointer',
-                                    height: '100%',
-                                    border: '1.5px solid var(--border)',
-                                    borderRadius: '20px'
+                                    textAlign: 'center', padding: '2rem 1.2rem',
+                                    cursor: 'pointer', height: '100%',
+                                    border: '1.5px solid var(--border)', borderRadius: '20px'
                                 }}
                             >
                                 <div style={{
-                                    background: 'rgba(5, 150, 105, 0.1)',
-                                    width: '60px',
-                                    height: '60px',
-                                    borderRadius: '16px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    margin: '0 auto 1.5rem',
-                                    color: 'var(--primary)'
+                                    background: 'rgba(5,150,105,0.1)', width: '60px', height: '60px',
+                                    borderRadius: '16px', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', margin: '0 auto 1.2rem', color: 'var(--primary)'
                                 }}>
                                     {f.icon}
                                 </div>
-                                <h4 style={{ fontSize: '1.2rem', marginBottom: '0.8rem', fontWeight: 800 }}>{f.title}</h4>
-                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.5 }}>{f.desc}</p>
+                                <h4 style={{ fontSize: '1.1rem', marginBottom: '0.6rem', fontWeight: 800 }}>{f.title}</h4>
+                                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', lineHeight: 1.5, margin: 0 }}>{f.desc}</p>
                             </motion.div>
                         </Link>
                     ))}
                 </div>
             </section>
 
-            {/* Featured Course Section */}
+            {/* ── Featured Course ── */}
             {courses.length > 0 && (
-                <section style={{ padding: '8rem 0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
+                <section className="featured-section">
+                    <div className="featured-header">
                         <div>
-                            <h2 style={{ fontSize: '2.8rem' }}>Featured <span className="gradient-text">Course</span></h2>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Get started with our most popular Osmania University law course.</p>
+                            <h2>Featured <span className="gradient-text">Course</span></h2>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', margin: 0 }}>
+                                Get started with our most popular Osmania University law course.
+                            </p>
                         </div>
-                        <Link href="/courses" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700 }}>
-                            View all courses <ArrowRight size={20} />
+                        <Link href="/courses" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                            View all courses <ArrowRight size={18} />
                         </Link>
                     </div>
 
-                    <div className="glass-card" style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1.2fr) 1fr', gap: '5rem', padding: '4rem', alignItems: 'center' }}>
+                    <div className="glass-card featured-card">
+                        {/* Image */}
                         <div style={{ position: 'relative' }}>
-                            <div style={{ padding: '6px 14px', background: 'var(--primary)', color: 'black', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', position: 'absolute', top: '24px', left: '24px', zIndex: 10, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>BEST SELLER</div>
-                            <div style={{ width: '100%', aspectRatio: '16/9', background: '#0f172a', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.2)' }}>
+                            <div style={{ padding: '5px 12px', background: 'var(--primary)', color: '#fff', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 800, position: 'absolute', top: '16px', left: '16px', zIndex: 10, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>
+                                BEST SELLER
+                            </div>
+                            <div style={{ width: '100%', aspectRatio: '16/9', background: '#0f172a', borderRadius: '18px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }}>
                                 <img src={featuredCourse.image} alt={featuredCourse.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             </div>
                         </div>
+
+                        {/* Info */}
                         <div>
-                            <div style={{ color: 'var(--primary)', fontWeight: '800', fontSize: '0.9rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '2px' }}>{featuredCourse.category}</div>
-                            <h3 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.2 }}>{featuredCourse.title}</h3>
-                            <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem', fontSize: '1.1rem', lineHeight: 1.7 }}>
+                            <div style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '0.8rem', marginBottom: '0.8rem', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                                {featuredCourse.category}
+                            </div>
+                            <h3 className="featured-h3" style={{ fontSize: '2rem', marginBottom: '1rem', lineHeight: 1.2 }}>
+                                {featuredCourse.title}
+                            </h3>
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', fontSize: '1rem', lineHeight: 1.7 }}>
                                 {featuredCourse.description}
                             </p>
-                            <div style={{ display: 'flex', gap: '3rem', marginBottom: '3rem' }}>
+                            <div className="featured-price-row">
                                 <div>
-                                    <div style={{ fontSize: '2rem', fontWeight: '800' }}>₹{featuredCourse.price}</div>
-                                    <div style={{ fontSize: '1rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{featuredCourse.originalPrice}</div>
+                                    <div style={{ fontSize: '1.8rem', fontWeight: 800 }}>₹{featuredCourse.price}</div>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>₹{featuredCourse.originalPrice}</div>
                                 </div>
-                                <div style={{ borderLeft: '2px solid #e2e8f0', paddingLeft: '3rem' }}>
-                                    <div style={{ fontSize: '2rem', fontWeight: '800' }}>{featuredCourse.duration || '7.5h'}</div>
-                                    <div style={{ fontSize: '1rem', color: 'var(--text-muted)' }}>Interactive Content</div>
+                                <div className="featured-price-divider">
+                                    <div style={{ fontSize: '1.8rem', fontWeight: 800 }}>{featuredCourse.duration || '7.5h'}</div>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Interactive Content</div>
                                 </div>
                             </div>
-                            <Link href={`/courses/${featuredCourse.id}`} className="btn-primary" style={{ height: '60px', borderRadius: '18px', fontSize: '1.1rem' }}>
+                            <Link href={`/courses/${featuredCourse.id}`} className="btn-primary featured-enroll-btn" style={{ height: '56px', borderRadius: '16px', fontSize: '1rem' }}>
                                 Enroll Now and Start Learning
                             </Link>
                         </div>
@@ -156,12 +212,14 @@ export default function Home() {
                 </section>
             )}
 
-            {/* Premium Resources Grid */}
-            <section style={{ padding: '6rem 0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
+            {/* ── Premium Resources Grid ── */}
+            <section className="resources-section">
+                <div className="resources-header">
                     <div>
-                        <h2 style={{ fontSize: '2.8rem' }}>Top <span className="gradient-text">Resources</span></h2>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Top rated study materials for competitive LLB preparation.</p>
+                        <h2>Top <span className="gradient-text">Resources</span></h2>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '1rem', margin: 0 }}>
+                            Top rated study materials for competitive LLB preparation.
+                        </p>
                     </div>
                 </div>
                 <div className="grid-3">
@@ -171,20 +229,11 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Call to Action */}
-            <section className="glass-card" style={{
-                margin: '8rem 0',
-                padding: '6rem 4rem',
-                textAlign: 'center',
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(59, 130, 246, 0.05))',
-                borderRadius: '48px',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <h2 style={{ fontSize: '3.5rem', marginBottom: '1.5rem', fontWeight: 800 }}>Ready to start learning?</h2>
-                <p style={{ color: 'var(--text-muted)', marginBottom: '3rem', fontSize: '1.25rem', maxWidth: '700px', margin: '0 auto 3rem' }}>
-                    Join thousands of students and start your professional legal growth today.
-                </p>
-                <Link href="/auth/signup" className="btn-primary" style={{ padding: '1.2rem 3rem', fontSize: '1.2rem' }}>
+            {/* ── Call to Action ── */}
+            <section className="cta-section glass-card">
+                <h2>Ready to start learning?</h2>
+                <p>Join thousands of students and start your professional legal growth today.</p>
+                <Link href="/auth/signup" className="btn-primary" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>
                     Create Your Account
                 </Link>
             </section>
